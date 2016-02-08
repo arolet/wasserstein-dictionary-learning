@@ -1,0 +1,343 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Wasserstein NMF on histograms representation of mixtures of gaussians</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-02-08"><meta name="DC.source" content="test_wassersteinDL_mixture1d.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Wasserstein NMF on histograms representation of mixtures of gaussians</h1><!--introduction--><p>This script is intended as a usage example of the Wasserstein Dictionary Toolbox, it reproduces the experiment in the introduction of [paper]</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Generate the data</a></li><li><a href="#2">Visualize the data</a></li><li><a href="#3">Build the cost matrix</a></li><li><a href="#4">Set the parameters of wasserstein_DL</a></li><li><a href="#5">Perform Wasserstein DL</a></li><li><a href="#6">Visualize the dictionary</a></li><li><a href="#7">Perform Wasserstein NMF</a></li><li><a href="#8">Visualize the dictionary</a></li><li><a href="#9">Compare data and reconstruction</a></li></ul></div><h2>Generate the data<a name="1"></a></h2><pre class="codeinput">ndata=100;              <span class="comment">% number of mixtures</span>
+niidsample=1000;        <span class="comment">% number of sample for each mixture</span>
+ndiscretize=100;        <span class="comment">% number of histogram bins</span>
+
+minVal=-12;
+maxVal=12;
+x=linspace(minVal,maxVal,ndiscretize);  <span class="comment">% value of the histograms bins</span>
+
+mu=[-6;0;6];                            <span class="comment">% mean values for the Gaussians means</span>
+shiftVariance=2*eye(3);                 <span class="comment">% variance of the Gaussians means</span>
+mean=mvnrnd(mu,shiftVariance,ndata)';   <span class="comment">% generate the gaussian means</span>
+p=rand(3,ndata);                        <span class="comment">% generate the mixture weights</span>
+
+sigma=1;                                <span class="comment">% variance of the Gaussians</span>
+
+data=zeros(ndiscretize,ndata);          <span class="comment">% preallocate memory</span>
+<span class="keyword">for</span> i=1:ndata
+    distrib=gmdistribution(mean(:,i),sigma,p(:,i)); <span class="comment">% generate a mixture of gaussians distribution</span>
+    a=random(distrib,niidsample);                   <span class="comment">% sample the distribution</span>
+    data(:,i)=hist(a(a&gt;minVal&amp;a&lt;maxVal),x)';        <span class="comment">% gather samples in a histogram</span>
+<span class="keyword">end</span>
+
+data=bsxfun(@rdivide,data,sum(data));   <span class="comment">% normalize the data</span>
+</pre><h2>Visualize the data<a name="2"></a></h2><pre class="codeinput">minY=0;
+maxY=.1;
+YtickStep=.02;
+i=1;
+fontSize=30;
+lineWidth=3;
+
+
+bar(x,data(:,i))
+set(gca,<span class="string">'FontSize'</span>,fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,<span class="string">'yTick'</span>,minY:YtickStep:maxY)
+set(gca,<span class="string">'xTick'</span>,mu)
+set(gca,<span class="string">'defaulttextinterpreter'</span>,<span class="string">'latex'</span>);
+title(<span class="string">'Data example'</span>)
+</pre><img vspace="5" hspace="5" src="test_wassersteinDL_mixture1d_01.png" alt=""> <h2>Build the cost matrix<a name="3"></a></h2><pre class="codeinput">M=abs(bsxfun(@minus,x',x));
+M=M/median(M(:));
+</pre><h2>Set the parameters of wasserstein_DL<a name="4"></a></h2><pre class="codeinput">options.stop=1e-3;
+options.verbose=0;
+options.alpha=0.5;
+options.Kmultiplication=<span class="string">'symmetric'</span>;
+options.GPU=0;
+k=3;
+
+gamma=1/50;
+
+wassersteinOrder=1;
+</pre><h2>Perform Wasserstein DL<a name="5"></a></h2><pre class="codeinput">options.alpha=0.5;
+options.D_step_stop=1e-7;
+options.lambda_step_stop=1e-7;
+tic;
+[D_DL, lambda_DL, objectives]=wasserstein_DL(data,k,M.^wassersteinOrder,gamma,0,0,options);
+toc
+plot(objectives);
+xlabel(<span class="string">'Number of outer iterations'</span>)
+ylabel(<span class="string">'Objective'</span>)
+</pre><pre class="codeoutput">Elapsed time is 5.045597 seconds.
+</pre><img vspace="5" hspace="5" src="test_wassersteinDL_mixture1d_02.png" alt=""> <h2>Visualize the dictionary<a name="6"></a></h2><pre class="codeinput">minY=floor(min(D_DL(:)*100))/100;
+
+
+plot(x,bsxfun(@rdivide,D_DL,sum(abs(D_DL))),<span class="string">'LineWidth'</span>,lineWidth)
+set(gca,<span class="string">'FontSize'</span>,fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,<span class="string">'yTick'</span>,minY:YtickStep:maxY)
+set(gca,<span class="string">'xTick'</span>,mu)
+set(gca,<span class="string">'defaulttextinterpreter'</span>,<span class="string">'latex'</span>);
+legend(<span class="string">'D_1'</span>,<span class="string">'D_2'</span>,<span class="string">'D_3'</span>);
+title(<span class="string">'Wasserstein dictionary learning'</span>)
+</pre><img vspace="5" hspace="5" src="test_wassersteinDL_mixture1d_03.png" alt=""> <h2>Perform Wasserstein NMF<a name="7"></a></h2><pre class="codeinput">rho1=.1;
+rho2=.1;
+options.D_step_stop=5e-5;
+options.lambda_step_stop=5e-4;
+tic;
+[D, lambda, objectives]=wasserstein_DL(data,k,M.^wassersteinOrder,gamma,rho1,rho2,options);
+toc
+plot(objectives);
+xlabel(<span class="string">'Number of outer iterations'</span>)
+ylabel(<span class="string">'Objective'</span>)
+</pre><pre class="codeoutput">Elapsed time is 29.500731 seconds.
+</pre><img vspace="5" hspace="5" src="test_wassersteinDL_mixture1d_04.png" alt=""> <h2>Visualize the dictionary<a name="8"></a></h2><pre class="codeinput">minY=0;
+plot(x,bsxfun(@rdivide,D,sum(abs(D))),<span class="string">'LineWidth'</span>,lineWidth)
+set(gca,<span class="string">'FontSize'</span>,fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,<span class="string">'yTick'</span>,minY:YtickStep:maxY)
+set(gca,<span class="string">'xTick'</span>,mu)
+set(gca,<span class="string">'defaulttextinterpreter'</span>,<span class="string">'latex'</span>);
+legend(<span class="string">'D_1'</span>,<span class="string">'D_2'</span>,<span class="string">'D_3'</span>);
+title(<span class="string">'Wasserstein NMF'</span>)
+</pre><img vspace="5" hspace="5" src="test_wassersteinDL_mixture1d_05.png" alt=""> <h2>Compare data and reconstruction<a name="9"></a></h2><pre class="codeinput">width=1200;
+height=600;
+figure(<span class="string">'Position'</span>,[1 1 width height])
+
+minY=0;
+i=1;
+
+subplot(1,2,1)
+bar(x,data(:,i))
+set(gca,<span class="string">'FontSize'</span>,3)
+set(gca,<span class="string">'FontSize'</span>,30)
+axis([minVal, maxVal, minY, maxY])
+set(gca,<span class="string">'yTick'</span>,minY:YtickStep:maxY)
+set(gca,<span class="string">'xTick'</span>,mu)
+set(gca,<span class="string">'defaulttextinterpreter'</span>,<span class="string">'latex'</span>);
+title(<span class="string">'Data histogram'</span>)
+
+
+subplot(1,2,2)
+plot(x,[D*lambda(:,i),D_DL*lambda_DL(:,i)],<span class="string">'LineWidth'</span>,lineWidth)
+set(gca,<span class="string">'FontSize'</span>,fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,<span class="string">'yTick'</span>,minY:YtickStep:maxY)
+set(gca,<span class="string">'xTick'</span>,mu)
+set(gca,<span class="string">'defaulttextinterpreter'</span>,<span class="string">'latex'</span>);
+legend(<span class="string">'NMF reconstruction'</span>,<span class="string">'DL reconstruction'</span>)
+title(<span class="string">'Reconstruction'</span>)
+</pre><img vspace="5" hspace="5" src="test_wassersteinDL_mixture1d_06.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Wasserstein NMF on histograms representation of mixtures of gaussians
+% This script is intended as a usage example of the Wasserstein Dictionary
+% Toolbox, it reproduces the experiment in the introduction of [paper]
+
+%% Generate the data
+
+ndata=100;              % number of mixtures
+niidsample=1000;        % number of sample for each mixture
+ndiscretize=100;        % number of histogram bins
+
+minVal=-12;
+maxVal=12;
+x=linspace(minVal,maxVal,ndiscretize);  % value of the histograms bins
+
+mu=[-6;0;6];                            % mean values for the Gaussians means
+shiftVariance=2*eye(3);                 % variance of the Gaussians means
+mean=mvnrnd(mu,shiftVariance,ndata)';   % generate the gaussian means
+p=rand(3,ndata);                        % generate the mixture weights
+
+sigma=1;                                % variance of the Gaussians
+
+data=zeros(ndiscretize,ndata);          % preallocate memory
+for i=1:ndata
+    distrib=gmdistribution(mean(:,i),sigma,p(:,i)); % generate a mixture of gaussians distribution
+    a=random(distrib,niidsample);                   % sample the distribution
+    data(:,i)=hist(a(a>minVal&a<maxVal),x)';        % gather samples in a histogram
+end
+
+data=bsxfun(@rdivide,data,sum(data));   % normalize the data
+
+%% Visualize the data
+
+minY=0;
+maxY=.1;
+YtickStep=.02;
+i=1;
+fontSize=30;
+lineWidth=3;
+
+
+bar(x,data(:,i))
+set(gca,'FontSize',fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,'yTick',minY:YtickStep:maxY)
+set(gca,'xTick',mu)
+set(gca,'defaulttextinterpreter','latex');
+title('Data example')
+
+%% Build the cost matrix
+
+M=abs(bsxfun(@minus,x',x));
+M=M/median(M(:));
+
+%% Set the parameters of wasserstein_DL
+
+options.stop=1e-3;
+options.verbose=0;
+options.alpha=0.5;
+options.Kmultiplication='symmetric';
+options.GPU=0;
+k=3;
+
+gamma=1/50;
+
+wassersteinOrder=1;
+
+
+%% Perform Wasserstein DL
+
+options.alpha=0.5;
+options.D_step_stop=1e-7;
+options.lambda_step_stop=1e-7;
+tic;
+[D_DL, lambda_DL, objectives]=wasserstein_DL(data,k,M.^wassersteinOrder,gamma,0,0,options);
+toc
+plot(objectives);
+xlabel('Number of outer iterations')
+ylabel('Objective')
+
+%% Visualize the dictionary
+
+minY=floor(min(D_DL(:)*100))/100;
+
+
+plot(x,bsxfun(@rdivide,D_DL,sum(abs(D_DL))),'LineWidth',lineWidth)
+set(gca,'FontSize',fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,'yTick',minY:YtickStep:maxY)
+set(gca,'xTick',mu)
+set(gca,'defaulttextinterpreter','latex');
+legend('D_1','D_2','D_3');
+title('Wasserstein dictionary learning')
+
+%% Perform Wasserstein NMF
+rho1=.1;
+rho2=.1;
+options.D_step_stop=5e-5;
+options.lambda_step_stop=5e-4;
+tic;
+[D, lambda, objectives]=wasserstein_DL(data,k,M.^wassersteinOrder,gamma,rho1,rho2,options);
+toc
+plot(objectives);
+xlabel('Number of outer iterations')
+ylabel('Objective')
+
+%% Visualize the dictionary
+
+
+minY=0;
+plot(x,bsxfun(@rdivide,D,sum(abs(D))),'LineWidth',lineWidth)
+set(gca,'FontSize',fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,'yTick',minY:YtickStep:maxY)
+set(gca,'xTick',mu)
+set(gca,'defaulttextinterpreter','latex');
+legend('D_1','D_2','D_3');
+title('Wasserstein NMF')
+
+
+%% Compare data and reconstruction
+
+width=1200;
+height=600;
+figure('Position',[1 1 width height])
+
+minY=0;
+i=1;
+
+subplot(1,2,1)
+bar(x,data(:,i))
+set(gca,'FontSize',3)
+set(gca,'FontSize',30)
+axis([minVal, maxVal, minY, maxY])
+set(gca,'yTick',minY:YtickStep:maxY)
+set(gca,'xTick',mu)
+set(gca,'defaulttextinterpreter','latex');
+title('Data histogram')
+
+
+subplot(1,2,2)
+plot(x,[D*lambda(:,i),D_DL*lambda_DL(:,i)],'LineWidth',lineWidth)
+set(gca,'FontSize',fontSize)
+axis([minVal, maxVal, minY, maxY])
+set(gca,'yTick',minY:YtickStep:maxY)
+set(gca,'xTick',mu)
+set(gca,'defaulttextinterpreter','latex');
+legend('NMF reconstruction','DL reconstruction')
+title('Reconstruction')
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
