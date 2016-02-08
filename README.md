@@ -1,4 +1,4 @@
-# wasserstein-dictionary-learning
+# Wasserstein Dictionary Learning and Non-negative Matrix Factorization
 A matlab toolbox to perform Wasserstein Dictionary Learning or NMF
 
 This repository contains a matlab implementation of the methods described in the article:
