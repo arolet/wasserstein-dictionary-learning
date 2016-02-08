@@ -13,4 +13,4 @@ See LICENCE.txt for copyright and warranty information.
 
 The easiest way to start using Wasserstein Dictionary Learning is to open up matlab and run all sections of the script test_wassersteinDL_mixture1d.m
 
-The main function is wasserstein_DL. Type doc wasserstein_DL in a matlab terminal for more information
+The main function is wasserstein_DL. Type doc wasserstein_DL in a matlab terminal for usage information
