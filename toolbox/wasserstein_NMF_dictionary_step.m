@@ -147,7 +147,7 @@ end
 
 
 % Launch the solver to get the dual optimizer
-[H, obj, gradient]=FISTA(H,@(G)computeObj(G),@(G)G,options.dual_descent_stop,options.t0,options.alpha,options.beta,options.verbose);
+[H, obj, gradient]=accelerated_gradient(H,@(G)computeObj(G),@(G)G,options.dual_descent_stop,options.t0,options.alpha,options.beta,options.verbose);
 obj=-obj;
 
 % Recover D from the dual variable

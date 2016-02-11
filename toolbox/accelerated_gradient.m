@@ -1,6 +1,10 @@
-function [H, obj,gradient]=FISTA(H0,computeObjGrad,proximal,stop,t0,alpha,beta,verbose,sumFunction,computeNorm)
-%% Fista algorithm implementation
-% Function that computes the minimum of a convex function using Fista
+function [H, obj,gradient]=accelerated_gradient(H0,computeObjGrad,proximal,stop,t0,alpha,beta,verbose,sumFunction,computeNorm)
+%% Accelerated gradient
+% Function that computes the minimum of a convex function using an
+% accelerated gradient with the update described in:
+%   Chambolle, A., & Dossal, C. (2015). On the convergence of the iterates
+%   of the Ågfast iterative shrinkage/thresholding algorithmÅh. Journal of
+%   Optimization Theory and Applications, 166(3), 968-982.
 %
 
 if ~exist('t0','var')||isempty(t0)
