@@ -69,7 +69,7 @@ options = checkOptionsWasserteinProjection(options);
 n=size(X,1);
 m=size(X,2);
 if strcmp(options.Kmultiplication,'symmetric')
-    if ~((size(K,1)==n)&&(sum(sum(abs(K-K')))/sum(sum(K))<1e-3))
+    if ~((size(K,2)==n)&&(sum(sum(abs(K-K')))/sum(sum(K))<1e-3))
         options.Kmultiplication='asymmetric';
     end
 end
