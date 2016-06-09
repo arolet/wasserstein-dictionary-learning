@@ -33,18 +33,18 @@ data=bsxfun(@rdivide,data,sum(data));   % normalize the data
 minY=0;
 maxY=.1;
 YtickStep=.02;
-i=1;
+indices=1:3;
 fontSize=30;
-lineWidth=3;
+lineWidth=4;
+axisValues=[minVal,maxVal,minY,maxY];
 
 
-bar(x,data(:,i))
-set(gca,'FontSize',fontSize)
-axis([minVal, maxVal, minY, maxY])
-set(gca,'yTick',minY:YtickStep:maxY)
-set(gca,'xTick',mu)
-set(gca,'defaulttextinterpreter','latex');
-title('Data example')
+dataLegendArray=cell(numel(indices),1);
+for i=1:numel(indices)
+    dataLegendArray{i}=['$x_{',num2str(i),'}$'];
+end
+
+plotDictionary(x,data(:,indices),axisValues,lineWidth,fontSize,YtickStep,mu,dataLegendArray,'Data samples')
 
 %% Build the cost matrix
 
@@ -62,6 +62,12 @@ options.Kmultiplication='symmetric';
 options.GPU=0;
 k=3;
 
+
+dictionaryLegendArray=cell(numel(indices),1);
+for i=1:k
+    dictionaryLegendArray{i}=['$d_{',num2str(i),'}$'];
+end
+
 gamma=1/50;
 
 wassersteinOrder=1;
@@ -78,19 +84,11 @@ ylabel('Objective')
 %% Visualize the dictionary
 
 
-plot(x,bsxfun(@rdivide,D,sum(abs(D))),'LineWidth',lineWidth)
-set(gca,'FontSize',fontSize)
-axis([minVal, maxVal, minY, maxY])
-set(gca,'yTick',minY:YtickStep:maxY)
-set(gca,'xTick',mu)
-set(gca,'defaulttextinterpreter','latex');
-legend('D_1','D_2','D_3');
-title('Wasserstein NMF')
-
+plotDictionary(x,D,axisValues,lineWidth,fontSize,YtickStep,mu,dictionaryLegendArray,'Wasserstein NMF')
 
 %% Perform Wasserstein DL
 
-options.alpha=0.5;
+options.alpha=0;
 options.D_step_stop=1e-7;
 options.lambda_step_stop=1e-7;
 [D_DL, lambda_DL, objectives]=wasserstein_DL(data,k,M.^wassersteinOrder,gamma,0,0,options);
@@ -100,17 +98,9 @@ ylabel('Objective')
 
 %% Visualize the dictionary
 
-minY=floor(min(D_DL(:)*100))/100;
+axisValues(3)=floor(min(D_DL(:)*100))/100;
 
-
-plot(x,bsxfun(@rdivide,D_DL,sum(abs(D_DL))),'LineWidth',lineWidth)
-set(gca,'FontSize',fontSize)
-axis([minVal, maxVal, minY, maxY])
-set(gca,'yTick',minY:YtickStep:maxY)
-set(gca,'xTick',mu)
-set(gca,'defaulttextinterpreter','latex');
-legend('D_1','D_2','D_3');
-title('Wasserstein dictionary learning')
+plotDictionary(x,D_DL,axisValues,lineWidth,fontSize,YtickStep,mu,dictionaryLegendArray,'Wasserstein DL')
 
 %% Compare data and reconstruction
 
@@ -118,30 +108,14 @@ width=1200;
 height=600;
 figure('Position',[1 1 width height])
 
+axisValues(3)=0;
 minY=0;
 i=1;
 
 subplot(1,2,1)
-bar(x,data(:,i))
-set(gca,'FontSize',3)
-set(gca,'FontSize',30)
-axis([minVal, maxVal, minY, maxY])
-set(gca,'yTick',minY:YtickStep:maxY)
-set(gca,'xTick',mu)
-set(gca,'defaulttextinterpreter','latex');
-title('Data histogram')
-
+plotDictionary(x,data(:,i),axisValues,lineWidth,fontSize,YtickStep,mu,'x','Data')
 
 subplot(1,2,2)
-plot(x,[D*lambda(:,i),D_DL*lambda_DL(:,i)],'LineWidth',lineWidth)
-set(gca,'FontSize',fontSize)
-axis([minVal, maxVal, minY, maxY])
-set(gca,'yTick',minY:YtickStep:maxY)
-set(gca,'xTick',mu)
-set(gca,'defaulttextinterpreter','latex');
-legend('NMF reconstruction','DL reconstruction')
-title('Reconstruction')
-
-
+plotDictionary(x,[D*lambda(:,i),D_DL*lambda_DL(:,i)],axisValues,lineWidth,fontSize,YtickStep,mu,{'NMF reconstruction','DL reconstruction'},'Reconstruction')
 
 
