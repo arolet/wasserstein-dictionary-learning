@@ -6,12 +6,12 @@ function [D, H,obj, gradient]=wasserstein_DL_dictionary_step(X,K,lambda,gamma,H,
 %
 % Inputs:
 %       - X, the input data (n-by-m matrix)
-%       - K, exp(-gamma*M) where M is the ground metric (n-by-t matrix). If
+%       - K, exp(-M/gamma) where M is the ground metric (n-by-t matrix). If
 %       K is symmetric, consider using options.Kmultiplication='symmetric'.
 %       If M is a squared Euclidean distance on a regular grid, consider
 %       using options.Kmultiplication='convolution' (see optional inputs 
 %       for more information)
-%       - D, the dictionary (t-by-k matrix)
+%       - lambda, the coefficients (k-by-m matrix)
 %       - gamma, the regularization parameter of Wasserstein (scalar)
 %       - rho, the regularization parameter for lambda (scalar)
 % 

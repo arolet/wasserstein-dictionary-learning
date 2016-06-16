@@ -6,7 +6,7 @@ function [lambda, H,obj, gradient]=wasserstein_NMF_coefficient_step(X,K,D,gamma,
 %
 % Inputs:
 %       - X, the input data (n-by-m matrix)
-%       - K, exp(-gamma*M) where M is the ground metric (n-by-t matrix). If
+%       - K, exp(-M/gamma) where M is the ground metric (n-by-t matrix). If
 %       K is symmetric, consider using options.Kmultiplication='symmetric'.
 %       If M is a squared Euclidean distance on a regular grid, consider
 %       using options.Kmultiplication='convolution' (see optional inputs 
