@@ -104,14 +104,7 @@ k=size(lambda,1);
         end
         sumL=sum(expL,1);
         obj=rho*sum(log(sumL));
-        if bigMatrices              % If memory is limited, prefer adding small matrices one by one
-            grad=0;
-            for i=1:k
-               grad=grad-bsxfun(@times,expL(:,i),lambda(i,:))/sumL(i); 
-            end
-        else
-            grad=-sum(bsxfun(@rdivide,bsxfun(@times,reshape(expL,[n,1,k]),reshape(lambda',[1,m, k])),reshape(sumL,[1,1,k])),3);
-        end
+        grad=-expL*bsxfun(@rdivide,lambda,sumL');
     end
 
 % Function handler that compute the Wasserstein part of the objective and its gradient
